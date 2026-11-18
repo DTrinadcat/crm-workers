@@ -12,9 +12,17 @@ import (
 	handler "example.com/miniprojects/crm_workers"
 )
 
+func routeData(data any, response *httptest.ResponseRecorder, address string, mux http.Handler, method string) {
+	// TODO add error
+	b, _ := json.Marshal(data)
+	request := httptest.NewRequest(method, address, bytes.NewReader(b))
+	request.Header.Set("Content-Type", "application/json")
+	mux.ServeHTTP(response, request)
+}
+
 func TestHandler(t *testing.T) {
 
-	t.Run("check main routes", func(t *testing.T) {
+	t.Run("check main routes (GET /)", func(t *testing.T) {
 
 		serverRouter := handler.NewRouter()
 
@@ -31,7 +39,7 @@ func TestHandler(t *testing.T) {
 		}
 
 	})
-	t.Run("check  routes", func(t *testing.T) {
+	t.Run("check get worker route (POST + GET /worker/)", func(t *testing.T) {
 
 		serverRouter := handler.NewRouter()
 
@@ -64,35 +72,19 @@ func TestHandler(t *testing.T) {
 			},
 		}
 
-		bDummy, _ := json.Marshal(workers[1])
+		// Dummy Post
+		routeData(workers[1], httptest.NewRecorder(), "/worker/", serverRouter, http.MethodPost)
 
-		requestDummy := httptest.NewRequest(http.MethodPost, "/worker/", bytes.NewReader(bDummy))
-		requestDummy.Header.Set("Content-Type", "application/json")
-		serverRouter.ServeHTTP(httptest.NewRecorder(), requestDummy)
+		// Target Post
+		routeData(workers[0], httptest.NewRecorder(), "/worker/", serverRouter, http.MethodPost)
 
-		b, _ := json.Marshal(workers[0])
-
-		r := bytes.NewReader(b)
-
-		request := httptest.NewRequest(http.MethodPost, "/worker/", r)
-		request.Header.Set("Content-Type", "application/json")
+		// Target Get
 		response := httptest.NewRecorder()
-
-		serverRouter.ServeHTTP(response, request)
-
-		bGet, _ := json.Marshal(userId)
-
-		rGet := bytes.NewReader(bGet)
-
-		requestGet := httptest.NewRequest(http.MethodGet, "/worker/", rGet)
-		requestGet.Header.Set("Content-Type", "application/json")
-		responseGet := httptest.NewRecorder()
-
-		serverRouter.ServeHTTP(responseGet, requestGet)
+		routeData(userId, response, "/worker/", serverRouter, http.MethodGet)
 
 		var got handler.Worker
 
-		json.Unmarshal(responseGet.Body.Bytes(), &got)
+		json.Unmarshal(response.Body.Bytes(), &got)
 
 		want := workers[0]
 
