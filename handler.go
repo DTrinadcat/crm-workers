@@ -31,11 +31,9 @@ func NewRouter() http.Handler {
 
 	})
 
-	mux.HandleFunc("GET /worker/{$}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /worker/{id}", func(w http.ResponseWriter, r *http.Request) {
 
-		var id uuid.UUID
-
-		json.NewDecoder(r.Body).Decode(&id)
+		id, _ := uuid.Parse(r.PathValue("id"))
 
 		for _, worker := range workers {
 

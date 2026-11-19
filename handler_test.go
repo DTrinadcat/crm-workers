@@ -3,6 +3,7 @@ package handler_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,11 +14,18 @@ import (
 )
 
 func routeData(data any, response *httptest.ResponseRecorder, address string, mux http.Handler, method string) {
-	// TODO add error
+	// TODO add an error handler
 	b, _ := json.Marshal(data)
 	request := httptest.NewRequest(method, address, bytes.NewReader(b))
 	request.Header.Set("Content-Type", "application/json")
 	mux.ServeHTTP(response, request)
+}
+
+func routeDataPathValue(response *httptest.ResponseRecorder, address string, mux http.Handler, method string) {
+
+	request := httptest.NewRequest(method, address, nil)
+	mux.ServeHTTP(response, request)
+
 }
 
 func TestHandler(t *testing.T) {
@@ -80,7 +88,7 @@ func TestHandler(t *testing.T) {
 
 		// Target Get
 		response := httptest.NewRecorder()
-		routeData(userId, response, "/worker/", serverRouter, http.MethodGet)
+		routeDataPathValue(response, fmt.Sprintf("/worker/{%s}", userId), serverRouter, http.MethodGet)
 
 		var got handler.Worker
 
