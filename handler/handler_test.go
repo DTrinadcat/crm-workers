@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/DTrinadcat/crm-workers/handler"
+	"github.com/DTrinadcat/crm-workers/store"
 	"github.com/google/uuid"
-
-	handler "example.com/miniprojects/crm_workers"
 )
 
 func routeData(data any, response *httptest.ResponseRecorder, address string, mux http.Handler, method string) {
@@ -32,7 +32,7 @@ func TestHandler(t *testing.T) {
 
 	t.Run("check main routes (GET /)", func(t *testing.T) {
 
-		serverRouter := handler.NewRouter()
+		serverRouter := handler.NewRouter(store.NewMemoryStore())
 
 		request := httptest.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
@@ -49,11 +49,13 @@ func TestHandler(t *testing.T) {
 	})
 	t.Run("check get worker route (POST + GET /worker/)", func(t *testing.T) {
 
-		serverRouter := handler.NewRouter()
+		s := store.NewMemoryStore()
+
+		serverRouter := handler.NewRouter(s)
 
 		userId := uuid.New()
 
-		workers := []handler.Worker{{
+		workers := []store.Worker{{
 			ID:               userId,
 			Name:             "John",
 			Surname:          "Smith",
@@ -90,7 +92,7 @@ func TestHandler(t *testing.T) {
 		response := httptest.NewRecorder()
 		routeDataPathValue(response, fmt.Sprintf("/worker/{%s}", userId), serverRouter, http.MethodGet)
 
-		var got handler.Worker
+		var got store.Worker
 
 		json.Unmarshal(response.Body.Bytes(), &got)
 
