@@ -30,23 +30,6 @@ func routeDataPathValue(response *httptest.ResponseRecorder, address string, mux
 
 func TestHandler(t *testing.T) {
 
-	t.Run("check main routes (GET /)", func(t *testing.T) {
-
-		serverRouter := handler.NewRouter(store.NewMemoryStore())
-
-		request := httptest.NewRequest(http.MethodGet, "/", nil)
-		response := httptest.NewRecorder()
-
-		serverRouter.ServeHTTP(response, request)
-
-		got := response.Body.String()
-		want := handler.GetMainRequestMessage
-
-		if want != got {
-			t.Errorf("want: %+v | got %+v", want, got)
-		}
-
-	})
 	t.Run("check get worker route (POST + GET /worker/)", func(t *testing.T) {
 
 		s := store.NewMemoryStore()

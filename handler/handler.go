@@ -2,26 +2,16 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/DTrinadcat/crm-workers/store"
 	"github.com/google/uuid"
 )
 
-const (
-	GetMainRequestMessage = "get request complete"
-)
-
 func NewRouter(s store.Store) http.Handler {
 
 	mux := http.NewServeMux()
-
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-
-		fmt.Fprint(w, GetMainRequestMessage)
-
-	})
 
 	mux.HandleFunc("GET /worker/{id}", func(w http.ResponseWriter, r *http.Request) {
 
@@ -29,12 +19,21 @@ func NewRouter(s store.Store) http.Handler {
 
 		if err != nil {
 			http.Error(w, "Incorrect ID (UUID)", http.StatusBadRequest)
+			return
 		}
 
 		worker, err := s.GetWorkerByID(id)
 
 		if err != nil {
-			http.Error(w, "ID was not found", http.StatusNotFound)
+
+			if errors.Is(err, store.ErrMessageNotFindID) {
+				http.Error(w, "ID was not found", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+
 		}
 
 		b, _ := json.Marshal(worker)
@@ -46,9 +45,48 @@ func NewRouter(s store.Store) http.Handler {
 
 		var worker store.Worker
 
-		json.NewDecoder(r.Body).Decode(&worker)
+		decoder := json.NewDecoder(r.Body)
 
-		s.AddWorker(worker)
+		if err := decoder.Decode(&worker); err != nil {
+			http.Error(w, "Incorrect Worker instance", http.StatusBadRequest)
+			return
+		}
+
+		if err := s.AddWorker(worker); err != nil {
+
+			if errors.Is(err, store.ErrWorkerAlreadyExists) {
+				http.Error(w, store.ErrWorkerAlreadyExists.Error(), http.StatusConflict)
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+	})
+
+	mux.HandleFunc("DELETE /worker/{id}", func(w http.ResponseWriter, r *http.Request) {
+
+		id, err := uuid.Parse(r.PathValue("id"))
+
+		if err != nil {
+			http.Error(w, "Incorrect ID (UUID)", http.StatusBadRequest)
+			return
+		}
+
+		if err := s.DeleteWorker(id); err != nil {
+
+			if errors.Is(err, store.ErrMessageNotFindID) {
+				http.Error(w, store.ErrMessageNotFindID.Error(), http.StatusNotFound)
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 
 	})
 

@@ -6,6 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
+var ErrMessageNotFindID = errors.New("ID not find")
+var ErrWorkerAlreadyExists = errors.New("Workers already exists")
+var ErrUnidentifiedAdding = errors.New("Unidentified creation error")
+var ErrUnidentifiedGetting = errors.New("Unidentified getting error")
+var ErrUnidentifiedDeleting = errors.New("Unidentified deleting error")
+
 type Worker struct {
 	ID                                                                    uuid.UUID
 	Name, Surname, Role, Office, Number, AdditionalNumber, Email, Address string
@@ -15,24 +21,6 @@ type Worker struct {
 
 type Store interface {
 	GetWorkerByID(id uuid.UUID) (Worker, error)
-	AddWorker(worker Worker)
-}
-
-type MemoryStore []Worker
-
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{}
-}
-
-func (ms *MemoryStore) GetWorkerByID(id uuid.UUID) (Worker, error) {
-	for _, worker := range *ms {
-		if id == worker.ID {
-			return worker, nil
-		}
-	}
-	return Worker{}, errors.New("Not find that id")
-}
-
-func (ms *MemoryStore) AddWorker(worker Worker) {
-	*ms = append(*ms, worker)
+	AddWorker(worker Worker) error
+	DeleteWorker(id uuid.UUID) error
 }
