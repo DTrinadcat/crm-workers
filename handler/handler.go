@@ -56,6 +56,7 @@ func NewRouter(s store.Store) http.Handler {
 
 			if errors.Is(err, store.ErrWorkerAlreadyExists) {
 				http.Error(w, store.ErrWorkerAlreadyExists.Error(), http.StatusConflict)
+				return
 			}
 
 			http.Error(w, err.Error(), http.StatusInternalServerError)

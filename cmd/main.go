@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -26,6 +25,20 @@ import (
 // 	Salary:           200_000,
 // }
 
+var workerEdenUpdated = store.Worker{
+	ID:               uuid.MustParse("57347eab-10cb-431b-b685-0fdcdc61bd63"),
+	Name:             "Martin",
+	Surname:          "Eden",
+	Role:             "Ex-Writer",
+	Office:           "USA, California, Oakland, Niche Avenue, 34",
+	Number:           "+12220009542",
+	AdditionalNumber: "+13944419844",
+	Email:            "martin.eden@example.com",
+	Address:          "sea",
+	IsAdmin:          false,
+	Salary:           100_000_000,
+}
+
 func main() {
 
 	dsn := "postgres://admin:secret@localhost:5432/workers?sslmode=disable"
@@ -47,9 +60,7 @@ func main() {
 
 	psqlDB := store.NewPSQLStore(db)
 
-	psqlDB.DeleteWorker(uuid.MustParse("a3d97519-4805-4093-af6b-403888fd0f4f"))
-
-	worker, err := psqlDB.GetWorkerByID(uuid.MustParse("a3d97519-4805-4093-af6b-403888fd0f4f"))
-	fmt.Println(worker)
+	// psqlDB.AddWorker(workerEden)
+	psqlDB.UpdateWorker(workerEdenUpdated)
 
 }

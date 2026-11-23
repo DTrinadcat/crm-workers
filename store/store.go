@@ -11,6 +11,7 @@ var ErrWorkerAlreadyExists = errors.New("Workers already exists")
 var ErrUnidentifiedAdding = errors.New("Unidentified creation error")
 var ErrUnidentifiedGetting = errors.New("Unidentified getting error")
 var ErrUnidentifiedDeleting = errors.New("Unidentified deleting error")
+var ErrUnidentifiedUpdating = errors.New("Unidentified updating error")
 
 type Worker struct {
 	ID                                                                    uuid.UUID
@@ -23,4 +24,6 @@ type Store interface {
 	GetWorkerByID(id uuid.UUID) (Worker, error)
 	AddWorker(worker Worker) error
 	DeleteWorker(id uuid.UUID) error
+	UpdateWorker(worker Worker) error
+	// GetAllWorkers
 }

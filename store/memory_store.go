@@ -46,3 +46,17 @@ func (ms *MemoryStore) DeleteWorker(id uuid.UUID) error {
 	return ErrMessageNotFindID
 
 }
+
+func (ms *MemoryStore) UpdateWorker(worker Worker) error {
+
+	for i, el := range *ms {
+
+		if el.ID == worker.ID {
+			(*ms)[i] = worker
+			return nil
+		}
+
+	}
+
+	return ErrMessageNotFindID
+}

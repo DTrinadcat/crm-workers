@@ -37,19 +37,20 @@ func (psqlS *PSQLStore) AddWorker(worker Worker) error {
 }
 
 func (psqlS *PSQLStore) DeleteWorker(id uuid.UUID) error {
-	_, err := psqlS.db.Exec("delete from workers where id = $1", id)
+	res, err := psqlS.db.Exec("delete from workers where id = $1", id)
 
-	// Правильную ли ошибку, я здесь проверяю?
 	if err != nil {
-
-		if errors.Is(err, sql.ErrNoRows) {
-
-			return ErrMessageNotFindID
-
-		}
-
 		return ErrUnidentifiedDeleting
+	}
 
+	rows, err := res.RowsAffected()
+
+	if err != nil {
+		return ErrUnidentifiedDeleting
+	}
+
+	if rows == 0 {
+		return ErrMessageNotFindID
 	}
 
 	return nil
@@ -67,10 +68,31 @@ func (psqlS *PSQLStore) GetWorkerByID(id uuid.UUID) (Worker, error) {
 			return worker, ErrMessageNotFindID
 		}
 
-		return worker, ErrUnidentifiedAdding
+		return worker, ErrUnidentifiedGetting
 
 	}
 
 	return worker, nil
 
+}
+
+func (psqlS *PSQLStore) UpdateWorker(worker Worker) error {
+
+	result, err := psqlS.db.Exec("update workers set (name, surname, role, office, number, additional_number, email, address, is_admin, salary) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) where id = $11", worker.Name, worker.Surname, worker.Role, worker.Office, worker.Number, worker.AdditionalNumber, worker.Email, worker.Address, worker.IsAdmin, worker.Salary, worker.ID)
+
+	if err != nil {
+		return ErrUnidentifiedUpdating
+	}
+
+	rows, err := result.RowsAffected()
+
+	if err == nil {
+		return ErrUnidentifiedUpdating
+	}
+
+	if rows == 0 {
+		return ErrMessageNotFindID
+	}
+
+	return nil
 }
