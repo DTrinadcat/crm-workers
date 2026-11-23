@@ -81,6 +81,13 @@ func (psqlS *PSQLStore) UpdateWorker(worker Worker) error {
 	result, err := psqlS.db.Exec("update workers set (name, surname, role, office, number, additional_number, email, address, is_admin, salary) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) where id = $11", worker.Name, worker.Surname, worker.Role, worker.Office, worker.Number, worker.AdditionalNumber, worker.Email, worker.Address, worker.IsAdmin, worker.Salary, worker.ID)
 
 	if err != nil {
+
+		var pgErr *pgconn.PgError
+
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return ErrWorkerAlreadyExists
+		}
+
 		return ErrUnidentifiedUpdating
 	}
 

@@ -41,6 +41,34 @@ func NewRouter(s store.Store) http.Handler {
 		w.Write(b)
 	})
 
+	mux.HandleFunc("PUT /worker/{$}", func(w http.ResponseWriter, r *http.Request) {
+
+		var worker store.Worker
+
+		decoder := json.NewDecoder(r.Body)
+
+		if err := decoder.Decode(&worker); err != nil {
+			http.Error(w, "Incorrect Worker instance", http.StatusBadRequest)
+			return
+		}
+
+		if err := s.UpdateWorker(worker); err != nil {
+
+			if errors.Is(err, store.ErrWorkerAlreadyExists) {
+				http.Error(w, store.ErrWorkerAlreadyExists.Error(), http.StatusConflict)
+				return
+			} else if errors.Is(err, store.ErrMessageNotFindID) {
+				http.Error(w, store.ErrMessageNotFindID.Error(), http.StatusNotFound)
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+	})
+
 	mux.HandleFunc("POST /worker/{$}", func(w http.ResponseWriter, r *http.Request) {
 
 		var worker store.Worker
