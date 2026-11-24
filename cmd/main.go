@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"log"
+	"net/http"
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
+	"github.com/DTrinadcat/crm-workers/handler"
 	"github.com/DTrinadcat/crm-workers/migrations"
 	"github.com/DTrinadcat/crm-workers/store"
 )
@@ -60,7 +62,8 @@ func main() {
 
 	psqlDB := store.NewPSQLStore(db)
 
-	// psqlDB.AddWorker(workerEden)
-	psqlDB.UpdateWorker(workerEdenUpdated)
+	mux := handler.NewRouter(psqlDB)
+
+	http.ListenAndServe(":8080", mux)
 
 }

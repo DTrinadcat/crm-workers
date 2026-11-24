@@ -13,6 +13,27 @@ func NewRouter(s store.Store) http.Handler {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /workers", func(w http.ResponseWriter, r *http.Request) {
+
+		workers, err := s.GetAllWorkers()
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		b, err := json.Marshal(workers)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(b)
+
+	})
+
 	mux.HandleFunc("GET /worker/{id}", func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := uuid.Parse(r.PathValue("id"))
@@ -41,7 +62,7 @@ func NewRouter(s store.Store) http.Handler {
 		w.Write(b)
 	})
 
-	mux.HandleFunc("PUT /worker/{$}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("PUT /worker", func(w http.ResponseWriter, r *http.Request) {
 
 		var worker store.Worker
 
@@ -59,6 +80,7 @@ func NewRouter(s store.Store) http.Handler {
 				return
 			} else if errors.Is(err, store.ErrMessageNotFindID) {
 				http.Error(w, store.ErrMessageNotFindID.Error(), http.StatusNotFound)
+				return
 			}
 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -69,7 +91,7 @@ func NewRouter(s store.Store) http.Handler {
 
 	})
 
-	mux.HandleFunc("POST /worker/{$}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /worker", func(w http.ResponseWriter, r *http.Request) {
 
 		var worker store.Worker
 

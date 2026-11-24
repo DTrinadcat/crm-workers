@@ -17,9 +17,11 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func checkStoreContract(t *testing.T, s store.Store) {
+func checkStoreContract(t *testing.T, newStore func() store.Store) {
 
 	t.Run("Add Worker, Get Worker, Update Worker and Delete Worker", func(t *testing.T) {
+
+		s := newStore()
 
 		var worker = store.Worker{
 			ID:               uuid.New(),
@@ -107,6 +109,8 @@ func checkStoreContract(t *testing.T, s store.Store) {
 
 	t.Run("Get All Workers", func(t *testing.T) {
 
+		s := newStore()
+
 		var worker = store.Worker{
 			ID:               uuid.New(),
 			Name:             "Martin",
@@ -172,9 +176,9 @@ func checkStoreContract(t *testing.T, s store.Store) {
 
 func TestMemoryStore(t *testing.T) {
 
-	s := store.NewMemoryStore()
-
-	checkStoreContract(t, s)
+	checkStoreContract(t, func() store.Store {
+		return store.NewMemoryStore()
+	})
 
 }
 
@@ -228,8 +232,13 @@ func TestPSQLStore(t *testing.T) {
 		t.Fatal("Migration Error:", err)
 	}
 
-	s := store.NewPSQLStore(db)
+	checkStoreContract(t, func() store.Store {
 
-	checkStoreContract(t, s)
+		if _, err := db.Exec("truncate table workers"); err != nil {
+			t.Fatal(err)
+		}
+
+		return store.NewPSQLStore(db)
+	})
 
 }

@@ -14,10 +14,17 @@ var ErrUnidentifiedDeleting = errors.New("Unidentified deleting error")
 var ErrUnidentifiedUpdating = errors.New("Unidentified updating error")
 
 type Worker struct {
-	ID                                                                    uuid.UUID
-	Name, Surname, Role, Office, Number, AdditionalNumber, Email, Address string
-	IsAdmin                                                               bool
-	Salary                                                                int
+	ID               uuid.UUID `json:"id"`
+	Name             string    `json:"name"`
+	Surname          string    `json:"surname"`
+	Role             string    `json:"role"`
+	Office           string    `json:"office"`
+	Number           string    `json:"number"`
+	AdditionalNumber string    `json:"additional_number"`
+	Email            string    `json:"email"`
+	Address          string    `json:"address"`
+	IsAdmin          bool      `json:"is_admin"`
+	Salary           int       `json:"salary"`
 }
 
 type Store interface {
