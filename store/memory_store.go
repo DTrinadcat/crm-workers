@@ -60,3 +60,7 @@ func (ms *MemoryStore) UpdateWorker(worker Worker) error {
 
 	return ErrMessageNotFindID
 }
+
+func (ms *MemoryStore) GetAllWorkers() ([]Worker, error) {
+	return *ms, nil
+}

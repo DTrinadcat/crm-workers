@@ -93,7 +93,7 @@ func (psqlS *PSQLStore) UpdateWorker(worker Worker) error {
 
 	rows, err := result.RowsAffected()
 
-	if err == nil {
+	if err != nil {
 		return ErrUnidentifiedUpdating
 	}
 
@@ -102,4 +102,38 @@ func (psqlS *PSQLStore) UpdateWorker(worker Worker) error {
 	}
 
 	return nil
+}
+
+func (psqlS *PSQLStore) GetAllWorkers() ([]Worker, error) {
+
+	res, err := psqlS.db.Query("select * from workers")
+
+	if err != nil {
+		return nil, ErrUnidentifiedGetting
+	}
+
+	defer res.Close()
+
+	var workers []Worker
+
+	for res.Next() {
+
+		var worker Worker
+
+		if err := res.Scan(&worker.ID, &worker.Name, &worker.Surname, &worker.Role, &worker.Office, &worker.Number, &worker.AdditionalNumber, &worker.Email, &worker.Address, &worker.IsAdmin, &worker.Salary); err != nil {
+
+			return nil, ErrUnidentifiedGetting
+
+		}
+
+		workers = append(workers, worker)
+
+	}
+
+	if err := res.Err(); err != nil {
+		return nil, ErrUnidentifiedGetting
+	}
+
+	return workers, nil
+
 }

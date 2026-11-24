@@ -25,5 +25,5 @@ type Store interface {
 	AddWorker(worker Worker) error
 	DeleteWorker(id uuid.UUID) error
 	UpdateWorker(worker Worker) error
-	// GetAllWorkers
+	GetAllWorkers() ([]Worker, error)
 }
